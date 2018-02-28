@@ -10,10 +10,6 @@
 #define LED3 5 // Atmega 328 pin 11
 #define LED4 3 // Atmega 328 pin 5
 #define LED5 10 // Atmega 328 pin 16
-// #define LED6 3 // Atmega 328 pin 5
-// #define LED7 5 // Atmega 328 pin 11
-// #define LED8 6 // Atmega 328 pin 12
-// #define LED9 9 // Atmega 328 pin 15
 
 #define LEDR 12 // Atmega 328 pin 18
 #define LEDG 11 // Atmega 328 pin 17
@@ -72,15 +68,18 @@ led7_prev, led7_next,
 led8_prev, led8_next, 
 led9_prev, led9_next;
 
-int LEDS[] = {LED1,LED2,LED3,LED4,LED5}; //,LED6,LED7,LED8,LED9};
-int LEDS_VALS[] = {0,0,0,0,0}; //,0,0,0,0};
+int LEDS[] = {LED1,LED2,LED3,LED4,LED5};
+int LEDS_VALS[] = {0,0,0,0,0};
+int LED_INTERVAL = 1;
+int LED_CONSTANT = 0;
+int LED_DIRECTIONS[] = {0,0,0,0,0};
 
-int targets[] = {0,0,0,0,0}; //,0,0,0,0};
+int targets[] = {0,0,0,0,0};
 
-int keyboardTarget[] = {0,0,0,50,50,50,0,0,0};
-int paperTarget[] = {0,0,0,50,50,50,0,0,0};
-int detailTarget[] = {0,0,0,50,50,50,0,0,0};
-int socialTarget[] = {0,0,0,50,50,50,0,0,0}; 
+int keyboardTarget[] = {LED_max,LED_med,LED_off,LED_off,LED_off};
+// int paperTarget[] = {0,0,0,50,50,50,0,0,0};
+// int detailTarget[] = {0,0,0,50,50,50,0,0,0};
+// int socialTarget[] = {0,0,0,50,50,50,0,0,0}; 
 
 int state   = 0; // off = 0 idle = 10 booting = 100 on = 1000 customization = 5000
 int medium  = 0; // off = 0 keyboard = 1 paper = 2 detail = 3 social = 4
@@ -89,25 +88,23 @@ int angle   = 0; // TODO -- get these values
 int time_customize_up   = 0;
 int time_customize_on   = 0;
 int time_customize_down = 0;
-int time_boot   = 0;
-int time_wake   = 0;
-int time_sleep  = 0;
+int time_b_up   = 4000;  //time needed to boot up
+int time_b_down = 0;  //time needed to boot down
+int time_wake   = 0;  //time interval to wake
+int time_sleep  = 0;  //time interval until sleep
+int chronos = 0;      //time tracker
+int chronosS = 0;     //start time tracker
+int chronosI = 0;     //time tracker interval
 
 void setup() {
   Serial.begin(9600);
-  // while (!Serial) {
-
-  // }
 
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
   pinMode(LED3, OUTPUT);
   pinMode(LED4, OUTPUT);
   pinMode(LED5, OUTPUT);
-  // pinMode(LED6, OUTPUT);
-  // pinMode(LED7, OUTPUT);
-  // pinMode(LED8, OUTPUT);
-  // pinMode(LED9, OUTPUT);
+
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
   pinMode(LEDB, OUTPUT);
@@ -120,16 +117,15 @@ void setup() {
   if (state == 0){ setLEDS(LED_min); }
   //setting medium to 1
   medium = 1;
+  offLights();
 }
 
 void loop(){
+
   updateLights();
-  //displayLights();
-
-  //stateDriver();
-  minLights();
-
   displayLights();
+
+  stateDriver();
 
   // analogWrite(LEDS[0], LED_min);  
   //showLED(1);
@@ -142,25 +138,71 @@ void loop(){
 void stateDriver(){
   switch(state){
     case 0: bootUp(medium); break; // this obviously needs to be activitatied with motions
+    default:  break;
   }
 }
 
 void bootUp(int m){ //medium we are booting to
   setMediums(m);
-  state == 100; //booting state
+  state = 100; //booting state
+  chronos = time_b_up;
+  chronosS = millis();
 }
 
 void setMediums(int m){ //more mediumds needed
   switch(m){
     case 1:
       memcpy(targets, keyboardTarget, sizeof(targets));
+      setDirection();
       break;
   }
 }
 
-void updateLights(){
-  minLights();
+void setDirection(){
+  for(int i = 0; i < 5; i++){
+    if (targets[i] > LEDS_VALS[i]){
+      LED_DIRECTIONS[i] = 1;
+    } else if (targets[i] < LEDS_VALS[i]){
+      LED_DIRECTIONS[i] = -1;
+    } else {
+      LED_DIRECTIONS[i] = 0;
+    }
+  }
+  Serial.println(LED_DIRECTIONS[1]);
+  Serial.println('y');
+  Serial.println(targets[1]);
+  Serial.println('y');
+  Serial.println(LEDS_VALS[1]);
+  Serial.println('y');
+
 }
+
+void updateLights(){
+  if (state == 0) { return; }
+  //medLights();
+  // getInterval();
+
+
+  long currentMillis = millis();
+  if ((currentMillis - chronosS) < chronos){
+    for(int i = 0; i < 5; i++){
+    // int i = 0;
+        int x = (LEDS_VALS[i] + (LED_CONSTANT * LED_INTERVAL * LED_DIRECTIONS[i]));  
+      if ( ((LED_DIRECTIONS[i] == 1 ) && (targets[i] < x)) || ((LED_DIRECTIONS[i] == -1 ) && (targets[i] > x)) ){ // bounding
+        LEDS_VALS[i] = targets[i];
+      } else {
+        setLED(i, (LEDS_VALS[i] + (LED_INTERVAL * LED_DIRECTIONS[i])));
+        Serial.println(x);
+      }
+    }
+  } else {
+    for(int i = 0; i < 5; i++){
+      setLED(i, targets[i]);
+    }
+    //LED_CONSTANT = 0;
+  }
+}
+
 void displayLights(){
   showLEDS();
 }
