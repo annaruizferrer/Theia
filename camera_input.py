@@ -1,13 +1,19 @@
 import cv2
 import time
+import os
+import platform
 from pythonosc import osc_message_builder
 from pythonosc import udp_client
+
+if platform.system() == "Darwin":
+	os.system("sudo sysctl -w net.inet.udp.maxdgram=100000")
+
 
 cap = cv2.VideoCapture(0)
 original_width = cap.get(cv2.cv2.CAP_PROP_FRAME_WIDTH);
 original_height = cap.get(cv2.cv2.CAP_PROP_FRAME_HEIGHT);
 
-scale = 0.2
+scale = 0.1
 
 width = int(scale*original_width)
 height = int(scale*original_height)
