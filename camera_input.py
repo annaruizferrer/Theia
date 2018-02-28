@@ -27,7 +27,9 @@ while(True):
     # Down-scale image
     input = cv2.resize(
     	gray, (width, height), interpolation = cv2.INTER_CUBIC)
-    
+
+    cv2.normalize(input, input, 0, 255, cv2.NORM_MINMAX)
+
     # Display the resulting frame
     cv2.imshow('frame',input)
 
