@@ -27,21 +27,21 @@ while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
-    # Our operations on the frame come here
+    # Rgb to gray
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
+    # Down-scale image
     input = cv2.resize(
     	gray, (width, height), interpolation = cv2.INTER_CUBIC)
+    
     # Display the resulting frame
     cv2.imshow('frame',input)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    #gray.reshape(307200).tolist()
 
     client.send_message(
-     	"/wek/inputs", map(lambda p: int(p), input.reshape(
-    		int(width*height)).tolist()))
+        "/wek/inputs", input.reshape(int(width*height)).tolist())
     time.sleep(1)
 
 # When everything done, release the capture
