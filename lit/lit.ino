@@ -81,6 +81,14 @@ int keyboardTarget[] = {LED_max,LED_med,LED_off,LED_off,LED_off};
 // int detailTarget[] = {0,0,0,50,50,50,0,0,0};
 // int socialTarget[] = {0,0,0,50,50,50,0,0,0}; 
 
+int mode_1[] = { LED_off, LED_off, LED_off, LED_off, LED_max};
+int mode_2[] = { LED_off, LED_off, LED_off, LED_med, LED_med_high};
+int mode_3[] = { LED_off, LED_off, LED_off, LED_min, LED_med};
+int mode_4[] = { LED_off, LED_off, LED_min, LED_med, LED_med};
+int mode_5[] = { LED_off, LED_min, LED_min, LED_min, LED_min};
+int mode_6[] = { LED_min, LED_min, LED_min, LED_min, LED_min};
+
+
 int state   = 0; // off = 0 idle = 10 booting = 100 on = 1000 customization = 5000
 int medium  = 0; // off = 0 keyboard = 1 paper = 2 detail = 3 social = 4
 int angle   = 0; // TODO -- get these values
