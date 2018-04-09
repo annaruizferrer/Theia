@@ -160,8 +160,8 @@ void stateDriver(){
     transition(medium, time_b_up, 100); //boot up
   } else if ((state % 10) == 1) {
     Serial.print('-');
-    transition(serializedMessage, time_transition_to, 100);
-    Serial.print(serializedMessage);
+    transition(medium, time_transition_to, 100);
+    Serial.print(medium);
   }
   else {
       //nothing
@@ -260,5 +260,4 @@ void setLEDS(int v){
   }
 }
 void setLED(int i, int v){ LEDS_VALS[i] = v; }
-
 
