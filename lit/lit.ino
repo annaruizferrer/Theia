@@ -1,4 +1,6 @@
 #include <NewPing.h>
+#include <SoftwareSerial.h>
+
 #define TRIGGER_PIN 4 // Atmega 328 pin 6
 #define ECHO_PIN 4 // Atmega 328 pin 6
 #define MAX_DISTANCE 200
@@ -47,6 +49,11 @@
 #define led_delay 0
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
+// Bluetooth
+int bluetoothTx = 8;
+int bluetoothRx = 7;
+SoftwareSerial bluetooth(bluetoothTx, bluetoothRx);
+
 boolean movement_detected = false; // This value tells if any movement is detected, if detected it will go to the next operation
 boolean green_light_process = false; // This value will tells that we are in the process when the RGB is green
 boolean initial_process = false; // For the initial process when red light and LDR are used
@@ -81,12 +88,12 @@ int keyboardTarget[] = {LED_max,LED_med,LED_off,LED_off,LED_off};
 // int detailTarget[] = {0,0,0,50,50,50,0,0,0};
 // int socialTarget[] = {0,0,0,50,50,50,0,0,0}; 
 
-int mode_1[] = { LED_off, LED_off, LED_off, LED_off, LED_max};
-int mode_2[] = { LED_off, LED_off, LED_off, LED_med, LED_med_high};
-int mode_3[] = { LED_off, LED_off, LED_off, LED_min, LED_med};
-int mode_4[] = { LED_off, LED_off, LED_min, LED_med, LED_med};
+int mode_1[] = { LED_off, LED_off, LED_off, LED_max, LED_max};
+int mode_2[] = { LED_off, LED_off, LED_off, LED_med, LED_med};
+int mode_3[] = { LED_off, LED_off, LED_min, LED_min, LED_med};
+int mode_4[] = { LED_off, LED_off, LED_min, LED_min, LED_min};
 int mode_5[] = { LED_off, LED_min, LED_min, LED_min, LED_min};
-int mode_6[] = { LED_min, LED_min, LED_min, LED_min, LED_min};
+int mode_6[] = { LED_min, LED_min, LED_min, LED_min, LED_off};
 int mode_off[] = { LED_off, LED_off, LED_off, LED_off, LED_off};
 
 
@@ -131,6 +138,8 @@ void setup() {
   medium = 1;
   offLights();
   establishContact();
+
+  bluetooth.begin(9600);
 }
 void establishContact() {
   if (Serial.available() <= 0) {
@@ -146,10 +155,21 @@ void loop(){
 }
 
 void serialListener(){
-  if (Serial.available() <= 0) {
-    int temp = Serial.parseInt();
+  int temp = 0;
+  if (bluetooth.available()) {
+    String message = "";
+    while (bluetooth.available()){
+      message = message + (char)bluetooth.read();
+      temp = message.toInt();
+    }
+
+//  if (Serial.available()){
+//    temp = Serial.parseInt();
+    
+//    Serial.println("command = " + temp);
     if ((temp >= 1) && (temp <= 6) && (temp != serializedMessage)){
       serializedMessage = temp;
+      Serial.println(temp);
       state += 1;
     }
   }
@@ -159,13 +179,13 @@ void stateDriver(){
   if (state == 0){
     transition(medium, time_b_up, 100); //boot up
   } else if ((state % 10) == 1) {
-    Serial.print('-');
+//    Serial.print('-');
     transition(serializedMessage, time_transition_to, 100);
-    Serial.print(serializedMessage);
+//    Serial.print(serializedMessage);
   }
   else {
       //nothing
-    Serial.print('0');
+    //Serial.print('0');
   }
 }
 
